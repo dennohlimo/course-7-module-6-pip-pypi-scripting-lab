@@ -1,32 +1,44 @@
 from datetime import datetime
-import os
+import requests
+
+URL = "https://jsonplaceholder.typicode.com/posts/1"
+
 
 def generate_log(data):
-    # TODO: Implement log generation logic
-
+    """Write each item in the list to a dated log file and return the filename."""
     # STEP 1: Validate input
-    # Hint: Check if data is a list
-    if type(data) is not list:
-        raise ValueError("Input must be a list of log entries.")
+    if not isinstance(data, list):
+        raise ValueError("Input data must be a list.")
 
-    # STEP 2: Generate a filename with today's date (e.g., "log_20250408.txt")
-    # Hint: Use datetime.now().strftime("%Y%m%d")
-    filename = f"log_{datetime.now().strftime('%Y%m%d')}.txt"
+    # STEP 2: Generate a filename with today's date
+    today = datetime.now().strftime("%Y%m%d")
+    filename = f"log_{today}.txt"
 
+    # STEP 3: Write the log entries to the file
+    try:
+        with open(filename, "w", encoding="utf-8") as file:
+            for entry in data:
+                file.write(f"{entry}\n")
+    except OSError as error:
+        print(f"Error writing to file: {error}")
+        return None
 
-    # STEP 3: Write the log entries to a file using File I/O
-    # Use a with open() block and write each line from the data list
-    # Example: file.write(f"{entry}\n")
-    with open(filename, "w") as file:
-        for entry in data:
-            file.write(f"{entry}\n")
-
-
-    # STEP 4: Print a confirmation message with the filename
+    # STEP 4: Print a confirmation message
     print(f"Log written to {filename}")
-
     return filename
 
 
+def fetch_data(url=URL):
+    """Fetch JSON data from the API. Returns an empty dict if the request fails."""
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as error:
+        print(f"Request failed: {error}")
+        return {}
+
+
 if __name__ == "__main__":
-    generate_log(["User logged in", "User updated profile", "Report exported"])
+    post = fetch_data()
+    print("Fetched Post Title:", post.get("title", "No title found"))
